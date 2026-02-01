@@ -5,19 +5,18 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Create Xcode Project
+      - name: Setup Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.0.app
+      - name: Build App
         run: |
-          # هذا السطر يصنع مشروع وهمي ليتمكن الماك من البناء
-          echo "نظام البناء يبدأ الآن..."
-      - name: Build IPA
-        run: |
-          # كود بناء مبسط جداً لإنتاج ملف IPA من كود سويفت
-          xcodebuild build -sdk iphoneos CODE_SIGNING_ALLOWED=NO -target MyNewApp || true
+          mkdir -p build
+          xcodebuild build -sdk iphoneos -configuration Release CODE_SIGNING_ALLOWED=NO -arch arm64
           mkdir -p Payload
-          # سنقوم بجمع الملفات الناتجة وتحويلها لـ IPA
-          zip -r MyNewApp.ipa Payload
+          # هذا السطر يبحث عن التطبيق الحقيقي وينسخه
+          find . -name "*.app" -exec cp -r {} Payload/ \;
+          zip -r MyFinalApp.ipa Payload
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: App-IPA
-          path: MyNewApp.ipa
+          name: App-Ready
+          path: MyFinalApp.ipa
